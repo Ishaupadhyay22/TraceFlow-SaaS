@@ -1,0 +1,35 @@
+version: "1.0"
+
+services:
+  web:
+    image: cloudassignment2/rest-count
+    ports:
+      - "8080:8080"
+
+  prometheus:
+    image: quay.io/prometheus/prometheus:v2.0.0
+    ports:
+      - "9090:9090"
+    command: "--config.file=/etc/prometheus/prometheus.yml"
+    configs:
+      - source: prometheus.yml
+        target: /etc/prometheus/prometheus.yml
+
+  autoscaler:
+    image: cloudassignment2/autoscaler:latest
+    command: "/etc/autoscaler/autoscaler.yml --log-leve=DEBUG"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    configs:
+      - source: autoscaler.yml
+        target: /etc/autoscaler/autoscaler.yml
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+configs:
+  prometheus.yml:
+    file: ./prometheus.yml
+  autoscaler.yml:
+    file: ./autoscaler.yml
